@@ -1,0 +1,15 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@code-insight/core": ["../core/src/index.ts"],
+			"@code-insight/core/*": ["../core/src/*"],
+			"@code-insight/adapters": ["../adapters/src/index.ts"],
+			"@code-insight/adapters/*": ["../adapters/src/*"]
+		},
+		"outDir": "dist",
+		"rootDir": "src"
+	},
+	"include": ["src"]
+}

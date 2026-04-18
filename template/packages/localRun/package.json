@@ -1,0 +1,31 @@
+{
+	"name": "@code-insight/local-run",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"types": "./dist/index.d.mts"
+		}
+	},
+	"bin": {
+		"code-insight-local": "./bin/code-insight-local.mjs"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"start": "node --experimental-strip-types src/index.ts"
+	},
+	"dependencies": {
+		"@code-insight/adapters": "workspace:*",
+		"@code-insight/core": "workspace:*",
+		"@slack/bolt": "^4.7.0"
+	},
+	"devDependencies": {
+		"tsdown": "^0.21.8",
+		"typescript": "^6.0.2"
+	}
+}

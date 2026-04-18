@@ -1,0 +1,34 @@
+[env]
+_.file = '.env'
+
+[tools]
+node = "24"
+pnpm = "10"
+firebase = "latest"
+
+[tasks.build]
+description = "Build all packages"
+run = "pnpm build"
+
+[tasks.deploy]
+description = "Deploy to Firebase Cloud Functions"
+run = "pnpm deploy"
+
+[tasks.lint]
+description = "Lint and check code"
+run = "pnpm lint"
+
+[tasks."lint:fix"]
+description = "Fix linting issues"
+run = "pnpm lint:fix"
+
+[tasks.format]
+description = "Format code"
+run = "pnpm format"
+
+[tasks."pre-commit"]
+description = "Execute before commit"
+run = "pnpm lint && pnpm build"
+
+[hooks]
+postinstall = "pnpm install && mise generate git-pre-commit --write --task=pre-commit"

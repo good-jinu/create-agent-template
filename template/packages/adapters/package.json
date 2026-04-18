@@ -1,0 +1,30 @@
+{
+	"name": "@code-insight/adapters",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"types": "./dist/index.d.mts"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch"
+	},
+	"dependencies": {
+		"@ai-sdk/google": "^3.0.63",
+		"@code-insight/core": "workspace:*",
+		"@slack/bolt": "^4.7.0",
+		"ai": "^6.0.159",
+		"octokit": "^5.0.5",
+		"ollama-ai-provider-v2": "^3.5.0"
+	},
+	"devDependencies": {
+		"tsdown": "^0.21.8",
+		"typescript": "^6.0.2"
+	}
+}

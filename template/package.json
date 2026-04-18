@@ -1,0 +1,17 @@
+{
+	"name": "code-insight",
+	"private": true,
+	"scripts": {
+		"build": "pnpm -r build",
+		"deploy": "firebase deploy --only functions --config packages/functions/firebase.json",
+		"deploy:full": "bash scripts/deploy.sh",
+		"local:run": "pnpm --filter @code-insight/local-run start",
+		"lint": "biome check packages/",
+		"lint:fix": "biome check --fix packages/",
+		"format": "biome format --write packages/"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.11",
+		"tsdown": "^0.21.8"
+	}
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@goodjinu/create-agent-template",
+  "version": "0.1.1",
+  "description": "Scaffold a TypeScript AI agent project with hexagonal architecture",
+  "type": "module",
+  "bin": {
+    "@goodjinu/create-agent-template": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template"
+  ],
+  "scripts": {
+    "build": "tsdown src/index.ts --outDir dist --format esm",
+    "dev": "node --experimental-strip-types src/index.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.1",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "tsdown": "^0.21.8",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
