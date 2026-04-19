@@ -1,6 +1,6 @@
 {
   "name": "@goodjinu/create-agent-template",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Scaffold a TypeScript AI agent project with hexagonal architecture",
   "type": "module",
   "bin": {
@@ -8,7 +8,7 @@
   },
   "files": [
     "dist",
-    "template"
+    "templates"
   ],
   "scripts": {
     "build": "tsdown src/index.ts --outDir dist --format esm",
