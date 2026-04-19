@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { cp, readFile, writeFile } from "node:fs/promises";
+import { cp, readFile, writeFile, rename } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
@@ -58,12 +58,28 @@ async function main() {
 
   await cp(TEMPLATE_DIR, dest, { recursive: true });
 
+  // Handle .gitignore rename (fixing npm publish issue)
+  try {
+    await rename(join(dest, "_gitignore"), join(dest, ".gitignore"));
+  } catch {
+    // ignore
+  }
+
   const files = await walk(dest);
   for (const file of files) {
     await replaceInFile(file, "code-insight", projectName);
   }
 
   s.stop("Template copied!");
+
+  const git = await p.confirm({ message: "Initialize git?" });
+  if (!p.isCancel(git) && git) {
+    try {
+      execSync("git init", { cwd: dest });
+    } catch {
+      // ignore
+    }
+  }
 
   const install = await p.confirm({ message: "Run pnpm install?" });
   if (!p.isCancel(install) && install) {
