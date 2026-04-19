@@ -1,6 +1,6 @@
 {
   "name": "@goodjinu/create-agent-template",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Scaffold a TypeScript AI agent project with hexagonal architecture",
   "type": "module",
   "bin": {

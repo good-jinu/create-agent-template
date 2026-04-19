@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"target": "es2022",
+		"strict": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"baseUrl": ".",
+		"paths": {
+			"@my-ai-agent/core": ["packages/core/src/index.ts"],
+			"@my-ai-agent/adapters": ["packages/adapters/src/index.ts"]
+		}
+	}
+}

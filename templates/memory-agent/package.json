@@ -1,0 +1,20 @@
+{
+	"name": "my-ai-agent",
+	"private": true,
+	"scripts": {
+		"build": "pnpm -r build",
+		"deploy": "firebase deploy --only functions --config packages/functions/firebase.json",
+		"deploy:firebase": "bash scripts/deploy-firebase.sh",
+		"deploy:slack": "bash scripts/deploy-slack.sh",
+		"deploy:slack:local": "bash scripts/deploy-slack.sh --local",
+		"deploy:full": "bash scripts/deploy-firebase.sh && bash scripts/deploy-slack.sh",
+		"local:run": "pnpm --filter @my-ai-agent/local-run start",
+		"lint": "biome check packages/",
+		"lint:fix": "biome check --fix packages/",
+		"format": "biome format --write packages/"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.11",
+		"tsdown": "^0.21.8"
+	}
+}

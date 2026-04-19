@@ -7,7 +7,22 @@ import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TEMPLATE_DIR = join(__dirname, "..", "template");
+const TEMPLATES_DIR = join(__dirname, "..", "templates");
+
+const TEMPLATES = [
+  {
+    value: "github-agent",
+    label: "GitHub Agent",
+    hint: "Code analysis agent with GitHub API integration",
+    internalName: "code-insight",
+  },
+  {
+    value: "memory-agent",
+    label: "Memory Agent",
+    hint: "Slack-connected agent with persistent memory (LanceDB/Chroma/Firestore)",
+    internalName: "my-ai-agent",
+  },
+] as const;
 
 async function replaceInFile(filePath: string, oldName: string, newName: string) {
   try {
@@ -51,12 +66,27 @@ async function main() {
     projectName = result;
   }
 
+  const templateChoice = await p.select({
+    message: "Which template?",
+    options: TEMPLATES.map((t) => ({
+      value: t.value,
+      label: t.label,
+      hint: t.hint,
+    })),
+  });
+  if (p.isCancel(templateChoice)) {
+    p.cancel("Cancelled.");
+    process.exit(0);
+  }
+
+  const template = TEMPLATES.find((t) => t.value === templateChoice)!;
+  const templateDir = join(TEMPLATES_DIR, template.value);
   const dest = join(process.cwd(), projectName);
 
   const s = p.spinner();
   s.start("Copying template...");
 
-  await cp(TEMPLATE_DIR, dest, { recursive: true });
+  await cp(templateDir, dest, { recursive: true });
 
   // Handle .gitignore rename (fixing npm publish issue)
   try {
@@ -67,7 +97,7 @@ async function main() {
 
   const files = await walk(dest);
   for (const file of files) {
-    await replaceInFile(file, "code-insight", projectName);
+    await replaceInFile(file, template.internalName, projectName);
   }
 
   s.stop("Template copied!");

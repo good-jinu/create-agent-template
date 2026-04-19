@@ -1,0 +1,11 @@
+[env]
+_.file = '.env'
+
+[tools]
+node = "24"
+pnpm = "10"
+firebase = "latest"
+
+[tasks.build]
+description = "Build all packages"
+run = "pnpm build"
