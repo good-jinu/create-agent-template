@@ -53,10 +53,12 @@ export class LanceDbAgentMemory implements IAgentMemory {
 		const names = await db.tableNames();
 		if (names.includes(this.tableName)) {
 			const table = await db.openTable(this.tableName);
-			await table.add([record]);
+			await table.add([record as unknown as Record<string, unknown>]);
 			this.table = table;
 		} else {
-			this.table = await db.createTable(this.tableName, [record]);
+			this.table = await db.createTable(this.tableName, [
+				record as unknown as Record<string, unknown>,
+			]);
 		}
 	}
 

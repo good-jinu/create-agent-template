@@ -1,5 +1,6 @@
 import type { ComplexityReport, DeveloperProfile } from "@code-insight/core";
-import type { App, KnownBlock } from "@slack/bolt";
+import type { App } from "@slack/bolt";
+import type { KnownBlock } from "@slack/types";
 
 export interface MessageContext {
 	channelId: string;
@@ -23,12 +24,23 @@ export class SlackAdapter {
 		timestamp: string,
 		emoji: string,
 	): Promise<void> {
-		await this.app.client.reactions.add({
-			token: this.botToken,
-			channel,
-			timestamp,
-			name: emoji,
-		});
+		try {
+			await this.app.client.reactions.add({
+				token: this.botToken,
+				channel,
+				timestamp,
+				name: emoji,
+			});
+		} catch (error: unknown) {
+			if (
+				error instanceof Error &&
+				(error as { data?: { error?: string } }).data?.error ===
+					"already_reacted"
+			) {
+				return;
+			}
+			throw error;
+		}
 	}
 
 	async removeReaction(

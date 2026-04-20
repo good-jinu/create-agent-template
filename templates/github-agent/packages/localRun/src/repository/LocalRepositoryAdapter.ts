@@ -96,6 +96,7 @@ export class LocalRepositoryAdapter implements IRepositoryService {
 	}
 
 	async getLastModifier(
+		_repo: string,
 		pathname: string,
 		limit = 3,
 	): Promise<DeveloperProfile[]> {

@@ -11,6 +11,7 @@ function mdToMrkdwn(text: string): string {
 			// Italic: remaining *text* (no * inside) → _text_
 			.replace(/\*([^*\n]+?)\*/g, "_$1_")
 			// Restore bold markers as mrkdwn *
+			// biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally using control characters for markers.
 			.replace(/\x02(.+?)\x03/gs, "*$1*")
 			// Strikethrough: ~~text~~ → ~text~
 			.replace(/~~(.+?)~~/gs, "~$1~")
@@ -28,12 +29,22 @@ export interface MessageContext {
 
 export class SlackAdapter {
 	private readonly botToken: string;
+	private botUserId?: string;
 
 	constructor(
 		private readonly app: App,
 		botToken: string,
 	) {
 		this.botToken = botToken;
+	}
+
+	async getBotUserId(): Promise<string> {
+		if (this.botUserId) return this.botUserId;
+		const result = await this.app.client.auth.test({
+			token: this.botToken,
+		});
+		this.botUserId = result.user_id || "";
+		return this.botUserId;
 	}
 
 	async addReaction(
@@ -48,8 +59,12 @@ export class SlackAdapter {
 				timestamp,
 				name: emoji,
 			});
-		} catch (error: any) {
-			if (error.data?.error === "already_reacted") {
+		} catch (error: unknown) {
+			if (
+				error instanceof Error &&
+				(error as { data?: { error?: string } }).data?.error ===
+					"already_reacted"
+			) {
 				return;
 			}
 			throw error;
@@ -138,6 +153,32 @@ export class SlackAdapter {
 		} catch {
 			return userId;
 		}
+	}
+
+	async resolveMentions(text: string): Promise<string> {
+		const botId = await this.getBotUserId();
+		const mentionRegex = /<@([UW][A-Z0-9]+)>/g;
+		const matches = [...text.matchAll(mentionRegex)];
+		if (matches.length === 0) return text;
+
+		const uniqueIds = [...new Set(matches.map((m) => m[1]))];
+		const nameMap = new Map<string, string>();
+
+		await Promise.all(
+			uniqueIds.map(async (id) => {
+				if (id === botId) {
+					nameMap.set(id, "(Self)");
+					return;
+				}
+				const name = await this.getUserName(id);
+				nameMap.set(id, name);
+			}),
+		);
+
+		return text.replace(mentionRegex, (match, id) => {
+			const name = nameMap.get(id) || id;
+			return name === "(Self)" ? `@${name}` : `@${name}`;
+		});
 	}
 
 	async searchMessages(query: string): Promise<string[]> {

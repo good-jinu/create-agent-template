@@ -1,30 +1,12 @@
-import type { LanguageModel } from "ai";
+import type { LanguageModel, Tool } from "ai";
+import { ChatAgent } from "../agents/ChatAgent/agent.js";
 import {
 	type ChatMessage,
 	DecisionAgent,
 } from "../agents/DecisionAgent/agent.js";
 import { MemoryAgent } from "../agents/MemoryAgent/agent.js";
 import type { IAgentMemory } from "../memory/types.js";
-
-export interface ISlackMessaging {
-	getRecentMessages(
-		channel: string,
-		limit?: number,
-	): Promise<Array<{ user: string; text: string; ts: string }>>;
-	getThreadMessages(
-		channel: string,
-		threadTs: string,
-	): Promise<Array<{ user: string; text: string; ts: string }>>;
-	getUserName(userId: string): Promise<string>;
-	addReaction(channel: string, timestamp: string, emoji: string): Promise<void>;
-	sendThreadMessage(
-		channel: string,
-		threadTs: string,
-		text: string,
-	): Promise<void>;
-	sendMessage(channel: string, text: string): Promise<void>;
-	searchMessages(query: string): Promise<string[]>;
-}
+import type { ISlackMessaging } from "../types/slack.js";
 
 export interface HandleSlackMessageParams {
 	slack: ISlackMessaging;
@@ -33,8 +15,8 @@ export interface HandleSlackMessageParams {
 	messageTs: string;
 	threadTs?: string;
 	botName: string;
-	teamContext: string;
 	memory?: IAgentMemory;
+	webSearchTool?: { name: string; instance: Tool };
 }
 
 const MAX_CHARS = 20_000;
@@ -58,8 +40,8 @@ export async function handleSlackMessage({
 	messageTs,
 	threadTs,
 	botName,
-	teamContext,
 	memory,
+	webSearchTool,
 }: HandleSlackMessageParams): Promise<void> {
 	// Fetch thread if the message is inside one, otherwise just the single message.
 	const isThread = threadTs !== undefined;
@@ -70,32 +52,56 @@ export async function handleSlackMessage({
 	const resolved: ChatMessage[] = await Promise.all(
 		rawMessages.map(async (m) => ({
 			userName: await slack.getUserName(m.user),
-			text: m.text,
+			text: await slack.resolveMentions(m.text),
 			ts: m.ts,
 		})),
 	);
 
+	for (const msg of resolved) {
+		console.log(`[Resolved Message] ${msg.userName}: ${msg.text}`);
+	}
+
 	const messages = truncateToLatest(resolved);
 
-	const decisionAgent = new DecisionAgent(model, memory, slack);
+	const decisionAgent = new DecisionAgent(model, memory, slack, webSearchTool);
 	const decision = await decisionAgent.decide({
 		messages,
 		botName,
-		teamContext,
 	});
 
 	console.log(`[Reasoning]: ${decision.reasoning}`);
 
 	if (!decision.should_respond) return;
 
+	// Handle simple emoji reaction immediately if it's the decided response type
 	if (decision.response_type === "emoji" && decision.emoji) {
-		await slack.addReaction(channel, messageTs, decision.emoji.replace(/:/g, ""));
-	} else if (decision.content) {
-		await slack.sendThreadMessage(channel, threadTs ?? messageTs, decision.content);
+		await slack.addReaction(
+			channel,
+			messageTs,
+			decision.emoji.replace(/^:|:$/g, ""),
+		);
+		if (memory) {
+			const memoryAgent = new MemoryAgent(model, memory);
+			await memoryAgent.process({
+				messages,
+				botResponse: `[Decision reasoning: ${decision.reasoning} - Reacted with emoji: ${decision.emoji}]`,
+			});
+		}
+		return;
 	}
 
-	if (memory) {
+	const chatAgent = new ChatAgent(model, memory, slack, webSearchTool);
+	const botResponse = await chatAgent.generate({
+		messages,
+		botName,
+		channel,
+		messageTs,
+		threadTs,
+		reasoning: decision.reasoning,
+	});
+
+	if (memory && botResponse) {
 		const memoryAgent = new MemoryAgent(model, memory);
-		await memoryAgent.process({ messages, botResponse: decision.content });
+		await memoryAgent.process({ messages, botResponse });
 	}
 }

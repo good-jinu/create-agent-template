@@ -9,10 +9,9 @@
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,
-		"baseUrl": ".",
 		"paths": {
-			"@code-insight/core": ["packages/core/src/index.ts"],
-			"@code-insight/adapters": ["packages/adapters/src/index.ts"]
+			"@code-insight/core": ["./packages/core/src/index.ts"],
+			"@code-insight/adapters": ["./packages/adapters/src/index.ts"]
 		}
 	}
 }

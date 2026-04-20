@@ -10,10 +10,6 @@
 			"import": "./dist/index.mjs",
 			"types": "./dist/index.d.mts"
 		},
-		"./chroma": {
-			"import": "./dist/memory/index.chroma.mjs",
-			"types": "./dist/memory/index.chroma.d.mts"
-		},
 		"./firestore": {
 			"import": "./dist/memory/index.firestore.mjs",
 			"types": "./dist/memory/index.firestore.d.mts"
@@ -25,20 +21,21 @@
 	},
 	"scripts": {
 		"build": "tsdown",
-		"dev": "tsdown --watch"
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^3.0.63",
+		"@ai-sdk/openai": "^3.0.0",
 		"@google-cloud/firestore": "^7.11.0",
 		"@lancedb/lancedb": "^0.17.0",
 		"@my-ai-agent/core": "workspace:*",
 		"@slack/bolt": "^4.7.0",
 		"ai": "^6.0.159",
-		"chromadb": "^3.4.3",
 		"ollama-ai-provider-v2": "^3.5.0"
 	},
 	"devDependencies": {
 		"tsdown": "^0.21.8",
-		"typescript": "^6.0.2"
+		"typescript": "^6.0.3"
 	}
 }

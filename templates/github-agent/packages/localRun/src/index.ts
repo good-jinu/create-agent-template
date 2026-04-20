@@ -1,10 +1,10 @@
 import { env, exit } from "node:process";
+import type { MessageContext } from "@code-insight/adapters";
 import {
 	GitHubAPIAdapter,
-	SlackAdapter,
 	ollamaProvider,
+	SlackAdapter,
 } from "@code-insight/adapters";
-import type { MessageContext } from "@code-insight/adapters";
 import { AnalyzeComplexityWorkflow } from "@code-insight/core";
 import { App, SocketModeReceiver } from "@slack/bolt";
 
@@ -16,7 +16,9 @@ const GITHUB_OWNER = env.GITHUB_OWNER ?? "";
 const SLACK_CHANNEL_ID = env.SLACK_CHANNEL_ID ?? "";
 
 if (!SLACK_APP_TOKEN) {
-	console.error("Missing SLACK_APP_TOKEN (xapp-...). Generate one at: Slack App Settings → Basic Information → App-Level Tokens (scope: connections:write)");
+	console.error(
+		"Missing SLACK_APP_TOKEN (xapp-...). Generate one at: Slack App Settings → Basic Information → App-Level Tokens (scope: connections:write)",
+	);
 	exit(1);
 }
 if (!SLACK_BOT_TOKEN) {
@@ -28,7 +30,9 @@ if (!GITHUB_TOKEN) {
 	exit(1);
 }
 if (!SLACK_CHANNEL_ID) {
-	console.error("Missing SLACK_CHANNEL_ID — set the channel ID to watch (e.g. C01234567)");
+	console.error(
+		"Missing SLACK_CHANNEL_ID — set the channel ID to watch (e.g. C01234567)",
+	);
 	exit(1);
 }
 
@@ -80,7 +84,11 @@ app.message(async ({ message }) => {
 		);
 
 		await slackAdapter.removeReaction(message.channel, message.ts, "eyes");
-		await slackAdapter.addReaction(message.channel, message.ts, "white_check_mark");
+		await slackAdapter.addReaction(
+			message.channel,
+			message.ts,
+			"white_check_mark",
+		);
 	} catch (error) {
 		console.error("Analysis failed:", error);
 		await slackAdapter.removeReaction(message.channel, message.ts, "eyes");
@@ -98,7 +106,10 @@ app.action("request_review_action", async ({ ack, body, client }) => {
 	await ack();
 
 	try {
-		const actionBody = body as unknown as Record<string, Record<string, unknown>>;
+		const actionBody = body as unknown as Record<
+			string,
+			Record<string, unknown>
+		>;
 		const actions = actionBody.actions as unknown as Array<{ value: string }>;
 		const ownerInfo = JSON.parse(actions[0].value);
 

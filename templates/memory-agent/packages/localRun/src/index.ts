@@ -45,8 +45,6 @@ slackApp.message(async ({ message }) => {
 			messageTs: message.ts,
 			threadTs: message.thread_ts,
 			botName: "My-Assistant-Local",
-			teamContext:
-				"You are a local development version of a personal AI assistant. You help answer questions and assist with tasks. Be helpful and concise.",
 			memory,
 		});
 	} catch (error) {

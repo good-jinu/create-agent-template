@@ -10,7 +10,7 @@ export class FirestoreMemoryAdapter implements IMemoryStore {
 	private readonly collection: CollectionReference<DocumentData>;
 
 	constructor(
-		private readonly db: Firestore,
+		readonly db: Firestore,
 		collectionName = "agent_memory",
 	) {
 		this.collection = db.collection(collectionName);

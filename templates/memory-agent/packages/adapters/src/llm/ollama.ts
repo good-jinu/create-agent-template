@@ -7,5 +7,5 @@ export const ollamaProvider: LLMProvider = {
 	largeModel: ollama("gemma4:26b"),
 	mediumModel: ollama("gemma4:26b"),
 	smallModel: ollama("gemma4:26b"),
-	embeddingModel: ollama.textEmbeddingModel("nomic-embed-text-v2-moe"),
+	embeddingModel: ollama.embeddingModel("nomic-embed-text-v2-moe"),
 };

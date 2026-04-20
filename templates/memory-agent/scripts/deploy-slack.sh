@@ -12,10 +12,10 @@ MANIFEST_FILE="packages/functions/slack-manifest.json"
 cd "$ROOT_DIR"
 
 # ─── Helpers ──────────────────────────────────────────────────────
-log()     { echo "▶  $*"; }
-success() { echo "✅ $*"; }
+log()     { echo "▶  $*" >&2; }
+success() { echo "✅ $*" >&2; }
 fail()    { echo "❌ $*" >&2; exit 1; }
-hr()      { echo "────────────────────────────────────────"; }
+hr()      { echo "────────────────────────────────────────" >&2; }
 
 # ─── Arguments ───────────────────────────────────────────────────
 IS_LOCAL=false
@@ -44,23 +44,28 @@ rotate_tokens() {
   fi
 
   if [[ -z "$refresh_token" ]]; then
-    log "No refresh token found. Using SLACK_CONFIG_TOKEN from environment."
-    return 0
+    log "No refresh token available to rotate."
+    return 1
   fi
 
   log "Rotating Slack configuration tokens..."
-  local RESPONSE="$(curl -sf -X POST https://slack.com/api/tooling.tokens.rotate \
-    -H "Authorization: Bearer $refresh_token")"
+  local RESPONSE="$(curl -s -X POST https://slack.com/api/tooling.tokens.rotate \
+    --data-urlencode "refresh_token=$refresh_token")"
 
-  if [[ "$(echo "$RESPONSE" | jq -r '.ok')" == "true" ]]; then
-    SLACK_CONFIG_TOKEN="$(echo "$RESPONSE" | jq -r '.access_token')"
-    local NEW_REFRESH="$(echo "$RESPONSE" | jq -r '.refresh_token')"
+  if [[ "$(echo "$RESPONSE" | jq -r '.ok // false')" == "true" ]]; then
+    SLACK_CONFIG_TOKEN="$(echo "$RESPONSE" | jq -r '.token' | tr -d '[:space:]')"
+    local NEW_REFRESH="$(echo "$RESPONSE" | jq -r '.refresh_token' | tr -d '[:space:]')"
     
     echo "{\"access_token\": \"$SLACK_CONFIG_TOKEN\", \"refresh_token\": \"$NEW_REFRESH\"}" > "$TOKENS_FILE"
     success "Slack tokens rotated and saved to $TOKENS_FILE"
+    log "Waiting for token propagation..."
+    sleep 2
+    return 0
   else
-    local ERR="$(echo "$RESPONSE" | jq -r '.error')"
-    log "Token rotation failed ($ERR). Falling back to SLACK_CONFIG_TOKEN from environment."
+    local ERR="$(echo "$RESPONSE" | jq -r '.error // "unknown_error"')"
+    log "Token rotation failed ($ERR)."
+    log "Response: $RESPONSE"
+    return 1
   fi
 }
 
@@ -74,29 +79,57 @@ for cmd in "${REQUIRED_CMDS[@]}"; do
   command -v "$cmd" &>/dev/null || fail "Required tool not found: $cmd"
 done
 
+# ─── Slack API Wrapper ──────────────────────────────────────────
+slack_api_call() {
+  local method="$1"
+  local body="$2"
+  local retry_on_expiry="${3:-true}"
+
+  local result="$(
+    curl -s -X POST "https://slack.com/api/$method" \
+      -H "Authorization: Bearer $SLACK_CONFIG_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "$body"
+  )"
+
+  local ok="$(echo "$result" | jq -r '.ok // false')"
+  local error="$(echo "$result" | jq -r '.error // empty')"
+
+  if [[ "$ok" == "false" ]] && [[ "$error" == "token_expired" || "$error" == "invalid_auth" ]] && [[ "$retry_on_expiry" == "true" ]]; then
+    log "Token expired or invalid. Attempting rotation..."
+    if rotate_tokens; then
+      # Retry once with the new token
+      slack_api_call "$method" "$body" "false"
+    else
+      echo "$result"
+    fi
+  else
+    echo "$result"
+  fi
+}
+
 # ─── Load persisted state ─────────────────────────────────────────
 [[ -f "$STATE_FILE" ]] && source "$STATE_FILE"
 SLACK_APP_ID="${SLACK_APP_ID:-}"
 
 # ─── Slack Config ─────────────────────────────────────────────────
-SLACK_CONFIG_REFRESH_TOKEN="${SLACK_CONFIG_REFRESH_TOKEN:-}"
 SLACK_CONFIG_TOKEN="${SLACK_CONFIG_TOKEN:-}"
 
 if [[ -f "$TOKENS_FILE" ]]; then
-  SLACK_CONFIG_TOKEN="$(jq -r '.access_token // empty' "$TOKENS_FILE")"
+  SLACK_CONFIG_TOKEN="$(jq -r '.access_token // empty' "$TOKENS_FILE" | tr -d '[:space:]')"
 fi
 
-rotate_tokens
-
-[[ -z "$SLACK_CONFIG_TOKEN" ]] && fail "SLACK_CONFIG_TOKEN or SLACK_CONFIG_REFRESH_TOKEN is required."
+if [[ -z "$SLACK_CONFIG_TOKEN" ]]; then
+  rotate_tokens || fail "SLACK_CONFIG_TOKEN is missing and rotation failed."
+fi
 
 FIREBASE_REGION="${FIREBASE_REGION:-us-central1}"
 FIREBASE_PROJECT="$(jq -r '.projects.default' "$FIREBASERC")"
 
 hr
-echo "  Deploying Slack App"
-echo "  Project:  $FIREBASE_PROJECT"
-echo "  App ID:   ${SLACK_APP_ID:-"(new)"}"
+echo "  Deploying Slack App" >&2
+echo "  Project:  $FIREBASE_PROJECT" >&2
+echo "  App ID:   ${SLACK_APP_ID:-"(new)"}" >&2
 hr
 
 # ─── Step 1: Get function URL ─────────────────────────────────────
@@ -158,24 +191,19 @@ if [[ -z "$SLACK_APP_ID" ]]; then
   # Slack API expects 'manifest' as a string
   POST_BODY="$(jq -n --arg manifest "$MANIFEST" '{"manifest": $manifest}')"
   
-  RESPONSE="$(
-    curl -sf -X POST https://slack.com/api/apps.manifest.create \
-      -H "Authorization: Bearer $SLACK_CONFIG_TOKEN" \
-      -H "Content-Type: application/json" \
-      -d "$POST_BODY"
-  )"
-
-  [[ "$(echo "$RESPONSE" | jq -r '.ok')" == "true" ]] || {
+  RESPONSE="$(slack_api_call "apps.manifest.create" "$POST_BODY")"
+  
+  if [[ "$(echo "$RESPONSE" | jq -r '.ok')" == "true" ]]; then
+    SLACK_APP_ID="$(echo "$RESPONSE" | jq -r '.app_id')"
+    NEW_BOT_TOKEN="$(echo "$RESPONSE" | jq -r '.credentials.bot_token')"
+    NEW_SIGNING_SECRET="$(echo "$RESPONSE" | jq -r '.credentials.signing_secret')"
+  
+    echo "SLACK_APP_ID=$SLACK_APP_ID" > "$STATE_FILE"
+    success "Slack app created: $SLACK_APP_ID"
+  else
     log "Error Response: $RESPONSE"
     fail "Slack app creation failed: $(echo "$RESPONSE" | jq -r '.error')"
-  }
-
-  SLACK_APP_ID="$(echo "$RESPONSE" | jq -r '.app_id')"
-  NEW_BOT_TOKEN="$(echo "$RESPONSE" | jq -r '.credentials.bot_token')"
-  NEW_SIGNING_SECRET="$(echo "$RESPONSE" | jq -r '.credentials.signing_secret')"
-
-  echo "SLACK_APP_ID=$SLACK_APP_ID" > "$STATE_FILE"
-  success "Slack app created: $SLACK_APP_ID"
+  fi
 
   # ─── Sync real secrets ──────────────────────────────────────────
   if [[ "$IS_LOCAL" == "false" ]]; then
@@ -200,31 +228,26 @@ else
   log "Updating Slack app manifest ($SLACK_APP_ID)..."
   POST_BODY="$(jq -n --arg app_id "$SLACK_APP_ID" --arg manifest "$MANIFEST" '{"app_id": $app_id, "manifest": $manifest}')"
 
-  RESPONSE="$(
-    curl -sf -X POST https://slack.com/api/apps.manifest.update \
-      -H "Authorization: Bearer $SLACK_CONFIG_TOKEN" \
-      -H "Content-Type: application/json" \
-      -d "$POST_BODY"
-  )"
-
-  [[ "$(echo "$RESPONSE" | jq -r '.ok')" == "true" ]] || {
+  RESPONSE="$(slack_api_call "apps.manifest.update" "$POST_BODY")"
+  
+  if [[ "$(echo "$RESPONSE" | jq -r '.ok')" == "true" ]]; then
+    success "Slack app manifest updated"
+  else
     log "Error Response: $RESPONSE"
     fail "Slack manifest update failed: $(echo "$RESPONSE" | jq -r '.error')"
-  }
-
-  success "Slack app manifest updated"
+  fi
 fi
 
 hr
 success "Slack deployment complete!"
 
 if [[ -n "${SLACK_APP_ID:-}" ]]; then
-  echo ""
-  echo "  Next steps for your Slack App ($SLACK_APP_ID):"
-  echo "  1. Install the app to your workspace:"
-  echo "     https://api.slack.com/apps/$SLACK_APP_ID/install-on-team"
-  echo "  2. If using Socket Mode (localRun), generate an App-Level Token:"
-  echo "     https://api.slack.com/apps/$SLACK_APP_ID/tokens"
-  echo "  3. Update your .env file with the NEW tokens (xoxb-... and xapp-...)"
-  echo ""
+  echo "" >&2
+  echo "  Next steps for your Slack App ($SLACK_APP_ID):" >&2
+  echo "  1. Install the app to your workspace:" >&2
+  echo "     https://api.slack.com/apps/$SLACK_APP_ID/install-on-team" >&2
+  echo "  2. If using Socket Mode (localRun), generate an App-Level Token:" >&2
+  echo "     https://api.slack.com/apps/$SLACK_APP_ID/tokens" >&2
+  echo "  3. Update your .env file with the NEW tokens (xoxb-... and xapp-...)" >&2
+  echo "" >&2
 fi

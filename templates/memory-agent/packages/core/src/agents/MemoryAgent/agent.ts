@@ -1,12 +1,14 @@
-import { generateText, type LanguageModel } from "ai";
+import {
+	generateText,
+	hasToolCall,
+	type LanguageModel,
+	stepCountIs,
+	tool,
+} from "ai";
+import { z } from "zod";
 import type { IAgentMemory } from "../../memory/types.js";
 import type { ChatMessage } from "../DecisionAgent/agent.js";
 import { MEMORY_PROMPT } from "./prompt.js";
-
-interface MemoryDecision {
-	should_store: boolean;
-	summary: string | null;
-}
 
 export class MemoryAgent {
 	constructor(
@@ -37,41 +39,56 @@ ${contextText}${params.botResponse ? `\n\nAssistant responded: ${params.botRespo
 
 ---
 
-Decide whether this exchange contains new information worth storing.`;
+Think through whether this exchange contains new information worth storing. If it does, call submitMemoryDecision with a concise summary. If not, call it with should_store: false.`;
 
-		const result = await generateText({
+		let submitted = false;
+
+		const submitMemoryDecision = tool({
+			description:
+				"Submit your decision about whether to store this conversation in long-term memory. Call this once you have finished reasoning.",
+			inputSchema: z.object({
+				should_store: z.boolean(),
+				summary: z
+					.string()
+					.nullable()
+					.describe("Concise summary to store, or null if not storing"),
+			}),
+			execute: async ({ should_store, summary }) => {
+				submitted = true;
+				if (should_store && summary) {
+					await this.memory.store(summary);
+					console.log(`[MemoryAgent stored]: ${summary}`);
+				}
+				return should_store ? "Stored." : "Nothing stored.";
+			},
+		});
+
+		const tools = { submitMemoryDecision };
+
+		const firstResult = await generateText({
 			model: this.model,
 			system: MEMORY_PROMPT,
 			prompt,
+			tools,
+			stopWhen: [hasToolCall("submitMemoryDecision"), stepCountIs(3)],
 		});
 
-		const decision = this.parseDecision(result.text);
-
-		if (decision.should_store && decision.summary) {
-			await this.memory.store(decision.summary);
-			console.log(`[MemoryAgent stored]: ${decision.summary}`);
+		if (!submitted) {
+			await generateText({
+				model: this.model,
+				system: MEMORY_PROMPT,
+				messages: [
+					{ role: "user", content: prompt },
+					...firstResult.response.messages,
+					{
+						role: "user",
+						content:
+							"You must call submitMemoryDecision now to complete your task.",
+					},
+				],
+				tools,
+				stopWhen: [hasToolCall("submitMemoryDecision"), stepCountIs(1)],
+			});
 		}
-	}
-
-	private parseDecision(text: string): MemoryDecision {
-		const jsonBlockMatch = text.match(/```json\s*([\s\S]*?)```/);
-		if (jsonBlockMatch) {
-			try {
-				return JSON.parse(jsonBlockMatch[1].trim());
-			} catch {
-				// fall through
-			}
-		}
-
-		const jsonMatch = text.match(/\{[\s\S]*"should_store"[\s\S]*\}/);
-		if (jsonMatch) {
-			try {
-				return JSON.parse(jsonMatch[0]);
-			} catch {
-				// fall through
-			}
-		}
-
-		return { should_store: false, summary: null };
 	}
 }

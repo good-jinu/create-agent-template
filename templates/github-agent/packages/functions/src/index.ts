@@ -70,7 +70,11 @@ slackApp.message(async ({ message }) => {
 		);
 
 		await slackAdapter.removeReaction(message.channel, message.ts, "eyes");
-		await slackAdapter.addReaction(message.channel, message.ts, "white_check_mark");
+		await slackAdapter.addReaction(
+			message.channel,
+			message.ts,
+			"white_check_mark",
+		);
 	} catch (error) {
 		console.error("Analysis failed:", error);
 		await slackAdapter.removeReaction(message.channel, message.ts, "eyes");

@@ -13,13 +13,16 @@ importers:
         version: 2.4.11
       tsdown:
         specifier: ^0.21.8
-        version: 0.21.8(typescript@6.0.2)
+        version: 0.21.8(typescript@6.0.3)
 
   packages/adapters:
     dependencies:
       '@ai-sdk/google':
         specifier: ^3.0.63
         version: 3.0.63(zod@4.3.6)
+      '@ai-sdk/openai':
+        specifier: ^3.0.0
+        version: 3.0.53(zod@4.3.6)
       '@google-cloud/firestore':
         specifier: ^7.11.0
         version: 7.11.6
@@ -35,19 +38,16 @@ importers:
       ai:
         specifier: ^6.0.159
         version: 6.0.161(zod@4.3.6)
-      chromadb:
-        specifier: ^3.4.3
-        version: 3.4.3
       ollama-ai-provider-v2:
         specifier: ^3.5.0
         version: 3.5.0(ai@6.0.161(zod@4.3.6))(zod@4.3.6)
     devDependencies:
       tsdown:
         specifier: ^0.21.8
-        version: 0.21.8(typescript@6.0.2)
+        version: 0.21.8(typescript@6.0.3)
       typescript:
-        specifier: ^6.0.2
-        version: 6.0.2
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/core:
     dependencies:
@@ -60,10 +60,10 @@ importers:
     devDependencies:
       tsdown:
         specifier: ^0.21.8
-        version: 0.21.8(typescript@6.0.2)
+        version: 0.21.8(typescript@6.0.3)
       typescript:
-        specifier: ^6.0.2
-        version: 6.0.2
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/functions:
     dependencies:
@@ -88,10 +88,10 @@ importers:
     devDependencies:
       tsdown:
         specifier: ^0.21.8
-        version: 0.21.8(typescript@6.0.2)
+        version: 0.21.8(typescript@6.0.3)
       typescript:
-        specifier: ^6.0.2
-        version: 6.0.2
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/localRun:
     dependencies:
@@ -116,10 +116,10 @@ importers:
     devDependencies:
       tsdown:
         specifier: ^0.21.8
-        version: 0.21.8(typescript@6.0.2)
+        version: 0.21.8(typescript@6.0.3)
       typescript:
-        specifier: ^6.0.2
-        version: 6.0.2
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 
@@ -131,6 +131,12 @@ packages:
 
   '@ai-sdk/google@3.0.63':
     resolution: {integrity: sha512-RfOZWVMYSPu2sPRfGajrauWAZ9BSaRopSn+AszkKWQ1MFj8nhaXvCqRHB5pBQUaHTfZKagvOmMpNfa/s3gPLgQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/openai@3.0.53':
+    resolution: {integrity: sha512-Wld+Rbc05KaUn08uBt06eEuwcgalcIFtIl32Yp+GxuZXUQwOb6YeAuq+C6da4ch6BurFoqEaLemJVwjBb7x+PQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -759,43 +765,6 @@ packages:
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
-
-  chromadb-js-bindings-darwin-arm64@1.3.3:
-    resolution: {integrity: sha512-fygMqw+Qsnc7zlh59tYAUfW5g859ZVLnA5cG0tyO7NZG2lQz1QKZCTqG49TVU7vfmeC7LzjIZvEQ0jrTqFKaMQ==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [darwin]
-
-  chromadb-js-bindings-darwin-x64@1.3.3:
-    resolution: {integrity: sha512-OwaNmkEo8gYp5inp88pa0vLUSNYs9nBouvumbt+YI1JYShpDs6cnBKAOfNCFbljjBunqCsv70PPxQqZmkyEzlQ==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [darwin]
-
-  chromadb-js-bindings-linux-arm64-gnu@1.3.3:
-    resolution: {integrity: sha512-98O7kBw2z9kLCbQqElebrV9SAcKf5QKDI9yD144ooLz+jOgj39ccF6q0R13FB3AwYxVvHhKiIKMjO3hOFCx5iw==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
-
-  chromadb-js-bindings-linux-x64-gnu@1.3.3:
-    resolution: {integrity: sha512-yqJRHDiLNQFfNcCDm/iILdf5gCBR0BxG1d+esX4ViHAP41h4WqbWq9MIAla+OKHKlyMpSq9BiqSfHBaL8rr5nQ==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
-  chromadb-js-bindings-win32-x64-msvc@1.3.3:
-    resolution: {integrity: sha512-X5zuolLBqh3+2GFh9BbjkBPFhPsmezc/HkYAk/rQvYayBqD39e/BT0JwYVbGr+gcqsZI3QO87xZ2FyHL8g8f9Q==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [win32]
-
-  chromadb@3.4.3:
-    resolution: {integrity: sha512-AouHyTh70Ux1w5TKDmk54wGAszY7NtU/DXyC7o3qGuE8b+b1nT/W3+s8UVd9XwqGZIR4A76+g4u7yJuV/WU3OA==}
-    engines: {node: '>=20'}
-    hasBin: true
 
   cliui@8.0.1:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
@@ -1680,8 +1649,8 @@ packages:
     resolution: {integrity: sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw==}
     engines: {node: '>= 0.6'}
 
-  typescript@6.0.2:
-    resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -1812,6 +1781,12 @@ snapshots:
       zod: 4.3.6
 
   '@ai-sdk/google@3.0.63(zod@4.3.6)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.8
+      '@ai-sdk/provider-utils': 4.0.23(zod@4.3.6)
+      zod: 4.3.6
+
+  '@ai-sdk/openai@3.0.53(zod@4.3.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.8
       '@ai-sdk/provider-utils': 4.0.23(zod@4.3.6)
@@ -2470,31 +2445,6 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
-
-  chromadb-js-bindings-darwin-arm64@1.3.3:
-    optional: true
-
-  chromadb-js-bindings-darwin-x64@1.3.3:
-    optional: true
-
-  chromadb-js-bindings-linux-arm64-gnu@1.3.3:
-    optional: true
-
-  chromadb-js-bindings-linux-x64-gnu@1.3.3:
-    optional: true
-
-  chromadb-js-bindings-win32-x64-msvc@1.3.3:
-    optional: true
-
-  chromadb@3.4.3:
-    dependencies:
-      semver: 7.7.4
-    optionalDependencies:
-      chromadb-js-bindings-darwin-arm64: 1.3.3
-      chromadb-js-bindings-darwin-x64: 1.3.3
-      chromadb-js-bindings-linux-arm64-gnu: 1.3.3
-      chromadb-js-bindings-linux-x64-gnu: 1.3.3
-      chromadb-js-bindings-win32-x64-msvc: 1.3.3
 
   cliui@8.0.1:
     dependencies:
@@ -3267,7 +3217,7 @@ snapshots:
 
   retry@0.13.1: {}
 
-  rolldown-plugin-dts@0.23.2(rolldown@1.0.0-rc.15)(typescript@6.0.2):
+  rolldown-plugin-dts@0.23.2(rolldown@1.0.0-rc.15)(typescript@6.0.3):
     dependencies:
       '@babel/generator': 8.0.0-rc.3
       '@babel/helper-validator-identifier': 8.0.0-rc.3
@@ -3281,7 +3231,7 @@ snapshots:
       picomatch: 4.0.4
       rolldown: 1.0.0-rc.15
     optionalDependencies:
-      typescript: 6.0.2
+      typescript: 6.0.3
     transitivePeerDependencies:
       - oxc-resolver
 
@@ -3464,7 +3414,7 @@ snapshots:
 
   tree-kill@1.2.2: {}
 
-  tsdown@0.21.8(typescript@6.0.2):
+  tsdown@0.21.8(typescript@6.0.3):
     dependencies:
       ansis: 4.2.0
       cac: 7.0.0
@@ -3475,7 +3425,7 @@ snapshots:
       obug: 2.1.1
       picomatch: 4.0.4
       rolldown: 1.0.0-rc.15
-      rolldown-plugin-dts: 0.23.2(rolldown@1.0.0-rc.15)(typescript@6.0.2)
+      rolldown-plugin-dts: 0.23.2(rolldown@1.0.0-rc.15)(typescript@6.0.3)
       semver: 7.7.4
       tinyexec: 1.1.1
       tinyglobby: 0.2.16
@@ -3483,7 +3433,7 @@ snapshots:
       unconfig-core: 7.5.0
       unrun: 0.2.35
     optionalDependencies:
-      typescript: 6.0.2
+      typescript: 6.0.3
     transitivePeerDependencies:
       - '@ts-macro/tsc'
       - '@typescript/native-preview'
@@ -3506,7 +3456,7 @@ snapshots:
       media-typer: 1.1.0
       mime-types: 3.0.2
 
-  typescript@6.0.2: {}
+  typescript@6.0.3: {}
 
   typical@4.0.0: {}
 

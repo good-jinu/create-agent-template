@@ -18,7 +18,8 @@
 				"reactions:write",
 				"reactions:read",
 				"users:read"
-			]
+			],
+			"user": ["search:read"]
 		}
 	},
 	"settings": {

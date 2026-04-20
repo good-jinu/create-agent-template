@@ -3,6 +3,7 @@
 	"private": true,
 	"scripts": {
 		"build": "pnpm -r build",
+		"typecheck": "tsc --noEmit",
 		"deploy": "firebase deploy --only functions --config packages/functions/firebase.json",
 		"deploy:full": "bash scripts/deploy.sh",
 		"local:run": "pnpm --filter @code-insight/local-run start",
@@ -12,6 +13,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.11",
-		"tsdown": "^0.21.8"
+		"tsdown": "^0.21.8",
+		"typescript": "^6.0.2"
 	}
 }

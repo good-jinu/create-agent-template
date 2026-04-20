@@ -9,10 +9,13 @@
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,
-		"baseUrl": ".",
 		"paths": {
-			"@my-ai-agent/core": ["packages/core/src/index.ts"],
-			"@my-ai-agent/adapters": ["packages/adapters/src/index.ts"]
+			"@my-ai-agent/core": [
+				"./packages/core/src/index.ts"
+			],
+			"@my-ai-agent/adapters": [
+				"./packages/adapters/src/index.ts"
+			]
 		}
 	}
 }

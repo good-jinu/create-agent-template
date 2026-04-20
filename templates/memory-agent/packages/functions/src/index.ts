@@ -53,9 +53,8 @@ slackApp.message(async ({ message }) => {
 			messageTs: message.ts,
 			threadTs: message.thread_ts,
 			botName: "My-Assistant",
-			teamContext:
-				"You are a personal AI assistant. You help answer questions, provide information, and assist with tasks in this Slack channel. You should be helpful, concise, and only respond when appropriate.",
 			memory,
+			webSearchTool: geminiProvider.webSearchTool,
 		});
 	} catch (error) {
 		console.error("Agent loop failed:", error);

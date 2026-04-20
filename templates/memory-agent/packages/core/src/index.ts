@@ -1,3 +1,4 @@
+export { ChatAgent } from "./agents/ChatAgent/agent.js";
 export {
 	type ChatMessage,
 	type Decision,
@@ -13,5 +14,4 @@ export type {
 export {
 	type HandleSlackMessageParams,
 	handleSlackMessage,
-	type ISlackMessaging,
 } from "./workflows/handleSlackMessage.js";

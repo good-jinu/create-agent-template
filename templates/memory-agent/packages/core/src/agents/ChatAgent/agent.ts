@@ -1,30 +1,11 @@
-import {
-	generateText,
-	hasToolCall,
-	type LanguageModel,
-	stepCountIs,
-	type Tool,
-	tool,
-} from "ai";
+import { generateText, type LanguageModel, type Tool, tool } from "ai";
 import { z } from "zod";
 import type { IAgentMemory } from "../../memory/types.js";
 import type { ISlackMessaging } from "../../types/slack.js";
-import { DECISION_PROMPT } from "./prompt.js";
+import type { ChatMessage } from "../DecisionAgent/agent.js";
+import { CHAT_PROMPT } from "./prompt.js";
 
-export interface ChatMessage {
-	userName: string;
-	text: string;
-	ts: string;
-}
-
-export interface Decision {
-	should_respond: boolean;
-	response_type: "thread" | "channel" | "emoji" | "ignore";
-	reasoning: string;
-	emoji: string | null;
-}
-
-export class DecisionAgent {
+export class ChatAgent {
 	constructor(
 		private readonly model: LanguageModel,
 		private readonly memory?: IAgentMemory,
@@ -32,14 +13,19 @@ export class DecisionAgent {
 		private readonly webSearch?: { name: string; instance: Tool },
 	) {}
 
-	async decide(params: {
+	async generate(params: {
 		messages: ChatMessage[];
 		botName: string;
-	}): Promise<Decision> {
+		channel: string;
+		messageTs: string;
+		threadTs?: string;
+		reasoning?: string;
+	}): Promise<string> {
 		const contextText = params.messages
 			.map((m) => `${m.userName}: ${m.text}`)
 			.join("\n");
 
+		// Inject recent semantic summaries into the system prompt (prepareCall pattern)
 		let coreMemory = "";
 		if (this.memory) {
 			const recent = await this.memory.recall(5);
@@ -51,31 +37,16 @@ export class DecisionAgent {
 		const prompt = `## Agent Identity
 Name: ${params.botName}
 
-## Current Message
+${params.reasoning ? `## Decision Reasoning\n${params.reasoning}\n` : ""}
+
+## Conversation History
 ${contextText}
 
 ---
 
-Think step by step, use available tools if needed, then call submitDecision with your final decision.`;
+Generate a helpful response for the user. You can use tools to interact with Slack (send messages, add reactions) or search for information.`;
 
-		let decision: Decision | null = null;
-
-		const tools: Record<string, Tool> = {
-			submitDecision: tool({
-				description:
-					"Submit your final decision about whether and how to respond to the message. Call this once you have finished reasoning.",
-				inputSchema: z.object({
-					should_respond: z.boolean(),
-					response_type: z.enum(["thread", "channel", "emoji", "ignore"]),
-					reasoning: z.string(),
-					emoji: z.string().nullable(),
-				}),
-				execute: async (input) => {
-					decision = input as Decision;
-					return "Decision recorded.";
-				},
-			}),
-		};
+		const tools: Record<string, Tool> = {};
 
 		if (this.memory) {
 			tools.memory = tool({
@@ -127,41 +98,65 @@ Think step by step, use available tools if needed, then call submitDecision with
 						: "No messages found.";
 				},
 			});
+
+			tools.sendMessage = tool({
+				description:
+					"Send a message to the current Slack channel (always in thread).",
+				inputSchema: z.object({
+					text: z.string().describe("The message text to send"),
+				}),
+				execute: async ({ text }) => {
+					await this.slack?.sendThreadMessage(
+						params.channel,
+						params.threadTs ?? params.messageTs,
+						text,
+					);
+					return "Message sent successfully.";
+				},
+			});
+
+			tools.addReaction = tool({
+				description: "Add an emoji reaction to the current message.",
+				inputSchema: z.object({
+					emoji: z
+						.string()
+						.describe(
+							"The emoji name (without colons, e.g., 'eyes', 'heavy_check_mark')",
+						),
+				}),
+				execute: async ({ emoji }) => {
+					await this.slack?.addReaction(
+						params.channel,
+						params.messageTs,
+						emoji.replace(/^:|:$/g, ""),
+					);
+					return "Reaction added successfully.";
+				},
+			});
 		}
 
 		if (this.webSearch) {
 			tools[this.webSearch.name] = this.webSearch.instance;
 		}
 
-		const system = DECISION_PROMPT + coreMemory;
+		const hasTools = Object.keys(tools).length > 0;
 
-		const firstResult = await generateText({
+		const result = await generateText({
 			model: this.model,
-			system,
 			prompt,
-			tools,
-			stopWhen: [hasToolCall("submitDecision"), stepCountIs(6)],
+			system: CHAT_PROMPT + coreMemory,
+			...(hasTools ? { tools, maxSteps: 5 } : {}),
 		});
 
-		if (!decision) {
-			await generateText({
-				model: this.model,
-				system,
-				messages: [
-					{ role: "user", content: prompt },
-					...firstResult.response.messages,
-					{
-						role: "user",
-						content:
-							"You must call submitDecision now to complete your response.",
-					},
-				],
-				tools: { submitDecision: tools.submitDecision },
-				stopWhen: [hasToolCall("submitDecision"), stepCountIs(1)],
-			});
+		// Extract the text that was actually sent via tool if possible
+		const sentMessage = result.toolCalls.find(
+			(tc) => tc.toolName === "sendMessage",
+		);
+
+		if (sentMessage) {
+			return (sentMessage as any).args?.text || result.text || "";
 		}
 
-		if (!decision) throw new Error("DecisionAgent did not call submitDecision");
-		return decision;
+		return result.text || "";
 	}
 }

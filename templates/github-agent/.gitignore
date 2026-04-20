@@ -32,7 +32,3 @@ build
 
 # Deploy state (persists Slack app ID between runs)
 .deploy-state
-.slack-tokens.json
-
-# database data
-lancedb-data/

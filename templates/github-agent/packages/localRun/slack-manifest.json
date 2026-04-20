@@ -1,38 +1,36 @@
 {
-  "display_information": {
-    "name": "code-insight-local",
-    "description": "Local dev instance of Code Insight — runs via Socket Mode against your machine.",
-    "background_color": "#2d2d2d"
-  },
-  "features": {
-    "bot_user": {
-      "display_name": "Code Insight (Local)",
-      "always_online": false
-    }
-  },
-  "oauth_config": {
-    "scopes": {
-      "bot": [
-        "channels:history",
-        "chat:write",
-        "reactions:write",
-        "reactions:read",
-        "users:read"
-      ]
-    }
-  },
-  "settings": {
-    "event_subscriptions": {
-      "bot_events": [
-        "message.channels"
-      ]
-    },
-    "interactivity": {
-      "is_enabled": true
-    },
-    "org_deploy_enabled": false,
-    "socket_mode_enabled": true,
-    "token_rotation_enabled": false,
-    "is_mcp_enabled": false
-  }
+	"display_information": {
+		"name": "code-insight-local",
+		"description": "Local dev instance of Code Insight — runs via Socket Mode against your machine.",
+		"background_color": "#2d2d2d"
+	},
+	"features": {
+		"bot_user": {
+			"display_name": "Code Insight (Local)",
+			"always_online": false
+		}
+	},
+	"oauth_config": {
+		"scopes": {
+			"bot": [
+				"channels:history",
+				"chat:write",
+				"reactions:write",
+				"reactions:read",
+				"users:read"
+			]
+		}
+	},
+	"settings": {
+		"event_subscriptions": {
+			"bot_events": ["message.channels"]
+		},
+		"interactivity": {
+			"is_enabled": true
+		},
+		"org_deploy_enabled": false,
+		"socket_mode_enabled": true,
+		"token_rotation_enabled": false,
+		"is_mcp_enabled": false
+	}
 }

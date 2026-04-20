@@ -19,6 +19,7 @@
 		"@ai-sdk/google": "^3.0.63",
 		"@code-insight/core": "workspace:*",
 		"@slack/bolt": "^4.7.0",
+		"@slack/types": "^2.20.1",
 		"ai": "^6.0.159",
 		"octokit": "^5.0.5",
 		"ollama-ai-provider-v2": "^3.5.0"
