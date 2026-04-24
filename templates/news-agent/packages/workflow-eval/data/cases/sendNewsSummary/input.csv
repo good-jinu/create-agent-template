@@ -1,0 +1,13 @@
+kind,title,description,url,source,publishedAt,content
+news_article,"OpenAI rolls out a faster reasoning model","The new model reduces latency while keeping tool-use quality high.","https://example.com/openai-reasoning","Tech Daily","2026-04-23T00:00:00Z",
+news_article,"Google announces updates to Search and Workspace","The company is pushing more AI-assisted workflows into everyday products.","https://example.com/google-search-workspace","Industry Brief","2026-04-23T00:00:00Z",
+scraped_page,,,,,,"https://example.com/openai-reasoning","# OpenAI rolls out a faster reasoning model
+
+The release improves response time and keeps the model suitable for tool-heavy workflows.
+
+Key detail: the update is aimed at production assistants that need lower latency."
+scraped_page,,,,,,"https://example.com/google-search-workspace","# Google updates Search and Workspace
+
+Google is adding more AI-assisted task flows across Search and Workspace.
+
+The main implication is tighter integration between information retrieval and office work."

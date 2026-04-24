@@ -1,0 +1,4 @@
+key,value
+expectedKeywords,OpenAI|reasoning|latency|tool
+expectedHeaderPrefix,*Hourly News Summary
+minBodyChars,50

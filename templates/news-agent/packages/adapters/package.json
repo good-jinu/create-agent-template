@@ -1,0 +1,44 @@
+{
+	"name": "@my-assistant/adapters",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"types": "./dist/index.d.mts"
+		},
+		"./firestore": {
+			"import": "./dist/memory/index.firestore.mjs",
+			"types": "./dist/memory/index.firestore.d.mts"
+		},
+		"./lancedb": {
+			"import": "./dist/memory/index.lancedb.mjs",
+			"types": "./dist/memory/index.lancedb.d.mts"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@ai-sdk/google": "^3.0.63",
+		"@ai-sdk/openai": "^3.0.0",
+		"@google-cloud/firestore": "^7.11.0",
+		"@lancedb/lancedb": "^0.17.0",
+		"@my-assistant/core": "workspace:*",
+		"@slack/bolt": "^4.7.0",
+		"ai": "^6.0.159",
+		"cheerio": "^1.1.2",
+		"ollama-ai-provider-v2": "^3.5.0",
+		"turndown": "^7.2.0"
+	},
+	"devDependencies": {
+		"@types/turndown": "^5.0.6",
+		"tsdown": "^0.21.8",
+		"typescript": "^6.0.3"
+	}
+}

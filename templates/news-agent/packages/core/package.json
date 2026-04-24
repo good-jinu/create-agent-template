@@ -1,0 +1,27 @@
+{
+	"name": "@my-assistant/core",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"types": "./dist/index.d.mts"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"ai": "^6.0.159",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"tsdown": "^0.21.8",
+		"typescript": "^6.0.3"
+	}
+}

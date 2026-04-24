@@ -1,0 +1,25 @@
+{
+	"name": "@my-assistant/functions",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"engines": {
+		"node": "24"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit",
+		"deploy": "firebase deploy --only functions",
+		"logs": "firebase functions:log"
+	},
+	"dependencies": {
+		"firebase-admin": "^13.8.0",
+		"firebase-functions": "^7.2.5"
+	},
+	"devDependencies": {
+		"tsdown": "^0.21.8",
+		"typescript": "^6.0.3"
+	}
+}

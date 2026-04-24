@@ -1,0 +1,22 @@
+{
+	"name": "@my-assistant/workflow-eval",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit",
+		"start": "node dist/index.mjs"
+	},
+	"dependencies": {
+		"@my-assistant/adapters": "workspace:*",
+		"@my-assistant/core": "workspace:*",
+		"ai": "^6.0.159"
+	},
+	"devDependencies": {
+		"tsdown": "^0.21.8",
+		"typescript": "^6.0.3"
+	}
+}

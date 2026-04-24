@@ -22,6 +22,12 @@ const TEMPLATES = [
     hint: "Slack-connected agent with persistent memory (LanceDB/Chroma/Firestore)",
     internalName: "my-ai-agent",
   },
+  {
+    value: "news-agent",
+    label: "News Agent",
+    hint: "Slack-connected agent with news fetching, web scraping, and daily summaries",
+    internalName: "news-agent",
+  },
 ] as const;
 
 async function replaceInFile(filePath: string, oldName: string, newName: string) {

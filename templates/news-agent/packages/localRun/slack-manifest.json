@@ -1,0 +1,33 @@
+{
+	"display_information": {
+		"name": "My Assistant (Local)",
+		"description": "Local development version of My Assistant.",
+		"background_color": "#2c3e50"
+	},
+	"features": {
+		"bot_user": {
+			"display_name": "My Assistant (Local)",
+			"always_online": true
+		}
+	},
+	"oauth_config": {
+		"scopes": {
+			"bot": [
+				"channels:history",
+				"chat:write",
+				"reactions:write",
+				"reactions:read",
+				"users:read"
+			],
+			"user": ["search:read"]
+		}
+	},
+	"settings": {
+		"event_subscriptions": {
+			"bot_events": ["message.channels"]
+		},
+		"org_deploy_enabled": false,
+		"socket_mode_enabled": true,
+		"token_rotation_enabled": false
+	}
+}

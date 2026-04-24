@@ -1,0 +1,3 @@
+kind,channel,threadTs,user,userName,text,ts
+slack_message,C0123456789,1713820000.000100,U1000000001,Ari,"Can you take a look at the rollout notes and summarize them?",1713820000.000100
+slack_message,C0123456789,1713820000.000100,U1000000002,Bea,"We just shipped the new scheduling flow and the dashboard cleanup.",1713820060.000200

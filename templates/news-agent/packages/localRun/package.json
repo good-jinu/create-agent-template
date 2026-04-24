@@ -1,0 +1,26 @@
+{
+	"name": "@my-assistant/local-run",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit",
+		"scrape": "node dist/scraper.mjs",
+		"start": "node dist/index.mjs"
+	},
+	"dependencies": {
+		"@lancedb/lancedb": "^0.17.0",
+		"@my-assistant/adapters": "workspace:*",
+		"@my-assistant/core": "workspace:*",
+		"@slack/bolt": "^4.7.0",
+		"ai": "^6.0.159",
+		"dotenv": "^16.4.7"
+	},
+	"devDependencies": {
+		"tsdown": "^0.21.8",
+		"typescript": "^6.0.3"
+	}
+}
